@@ -1,0 +1,10 @@
+torch>=2.10.0
+numpy>=1.24
+transformers>=5.2.0
+datasets>=2.18
+accelerate>=0.30
+safetensors>=0.4
+sentencepiece>=0.2
+tokenizers>=0.19
+lightning>=2.6.6
+pytorch-lightning>=2.6.6
