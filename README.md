@@ -10,23 +10,23 @@ LSPO trains language models to internalize answer correction. Each answer is pai
 
 ![Qwen3.5-27B benchmark results, rollout-to-direct alignment, and energy separation](assets/figure1.png)
 
-Benchmark performance on Qwen3.5-27B, alignment between rollout-selected answers and direct generation, and final-energy distributions for correct and incorrect answers.
+Improvements found during training persist in direct generation. On Qwen3.5-27B, the LSPO policy attains the highest aggregate direct pass@1 and pass@16 accuracy across benchmarks in the left panels, selected training endpoints align closely with deployed outputs in the top right, and final energy separates correct from incorrect answers in the bottom right.
 
 ### Method
 
 ![Comparison of answer-level optimization, trajectory RL, and LSPO](assets/method.png)
 
-**Comparison with answer-level optimization and trajectory RL.** LSPO assigns credit to transitions in the lifted state space and internalizes the selected answers.
+Comparison of training paradigms. Preference learning in the top left panel optimizes static final answers, while trajectory RL in the top right panel maximizes returns across full rollouts. LSPO in the bottom panel assigns credit to local transitions and internalizes selected endpoints.
 
 <img src="assets/formulas_combined.png" alt="LSPO reward and optimization objective" width="80%" />
 
-**Training objective.** Energy decrease supplies transition credit, with edit and step penalties. KL regularization constrains policy updates, while answer internalization trains the generator on selected answers.
+Annotated reward and objective for LSPO. The assignment of credit per step, the regularization of the policy, and direct training on the answer occupy distinct terms within the update.
 
 <p align="center">
   <img src="assets/fig1_drawio.png" alt="LSPO framework: lifted states and answer internalization" width="80%" />
 </p>
 
-**LSPO framework.** Correction proceeds through lifted states, and selected answers provide targets for direct generation.
+A single LSPO training update. Move shaping in the lifted space and answer internalization act concurrently on the selected candidate.
 
 ### Benchmark Results
 
@@ -38,11 +38,15 @@ The paper evaluates Qwen3.5-9B and Qwen3.5-27B dense models, together with the Q
   <img src="assets/figure6_pass16_benchmarks_qwen35_9b.png" alt="Qwen3.5-9B benchmark results" width="80%" />
 </p>
 
+Benchmark profile for Qwen3.5-9B. LSPO improves direct accuracy while preserving substantial sampled pass@16 headroom in the smaller dense backbone.
+
 **Qwen3.5-27B**
 
 <p align="center">
   <img src="assets/figure6_pass16_benchmarks_qwen35_27b.png" alt="Qwen3.5-27B benchmark results" width="80%" />
 </p>
+
+Benchmark profile for Qwen3.5-27B. LSPO achieves consistent direct gains while preserving the sampled pass@16 envelope.
 
 **Qwen3.5-35B-A3B**
 
@@ -50,11 +54,13 @@ The paper evaluates Qwen3.5-9B and Qwen3.5-27B dense models, together with the Q
   <img src="assets/figure6_pass16_benchmarks_qwen35_35b_a3b.png" alt="Qwen3.5-35B-A3B benchmark results" width="80%" />
 </p>
 
+Benchmark profile for Qwen3.5-35B-A3B. LSPO remains the strongest direct policy as available performance headroom narrows in the MoE backbone.
+
 ### Quality and Internalization
 
 ![Quality, sampling, correction transitions, and output cost on Qwen3.5-27B](assets/results.png)
 
-**Quality and cost on Qwen3.5-27B.** LSPO achieves an aggregate pass@1 score of 71.8%, with an average latency of 10.93 seconds and 1,265 output tokens in the paper's evaluation.
+Quality, sampling, revision, and token cost on Qwen3.5-27B. LSPO reaches 71.8% accuracy at 10.9 s latency in a single pass; test-time reflection adds 0.1 points but costs 4.3 s more and 440 additional tokens. LSPO remains above the pass@$k$ curve, most often converts incorrect answers to correct ones, and avoids the long latency tail of repeated refinement.
 
 ### Training Dynamics
 
@@ -62,22 +68,24 @@ The paper evaluates Qwen3.5-9B and Qwen3.5-27B dense models, together with the Q
   <img src="assets/figure5_training_dynamics.png" alt="Transition stability, net gain, and direct performance during training" width="50%" />
 </p>
 
-**Training dynamics.** Transition stability, net correction gain, and direct pass@1 over 15,000 training steps.
+Training dynamics across transition stability, net gain, and direct accuracy. Transition stability and net gain plateau before direct accuracy, consistent with the geometric landscape forming before the generator absorbs it.
 
 <p align="center">
   <img src="assets/geometric_descent.png" alt="Energy during policy training" width="80%" />
 </p>
 
-**Energy during policy training.** Highlighted points mark improvements in the lowest energy observed so far; the line tracks that running minimum across policy updates.
+Policy-training energy and task-level net gains. The left panel shows recorded energy across policy updates, where the curve tracks the cumulative minimum and points mark new minima. The right panel independently reports net correction gains across benchmarks.
 
-Component ablations on Qwen3.5-27B:
+Component ablations on Qwen3.5-27B. The full LSPO stack leads in aggregate score while controlling latency, output length, and training cost.
 
-| Variant | Aggregate pass@1 (%) | Average latency (s) | Average output tokens |
-| --- | ---: | ---: | ---: |
-| **LSPO** | **71.8** | **10.93** | **1,265** |
-| Without lifting | 70.9 | 11.70 | 1,316 |
-| Without progress reward | 70.0 | 12.35 | 1,366 |
-| Without internalization | 70.3 | 12.02 | 1,341 |
+| Variant | Agg. | Net gain | Latency (s) | Tokens | GPU hrs |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| LSPO full | 71.8 | 4.7 | 10.93 | 1265 | 2983 |
+| - w/o lifting | 70.9 | 3.2 | 11.70 | 1316 | 2804 |
+| - w/o progress reward | 70.0 | 1.6 | 12.35 | 1366 | 2715 |
+| - w/o internalization | 70.3 | 2.4 | 12.02 | 1341 | 2566 |
+| GRPO | 70.0 | 3.3 | 12.04 | 1370 | 2386 |
+| DPO | 66.9 | 1.8 | 10.42 | 1196 | 1218 |
 
 ## Initialization
 
@@ -95,12 +103,14 @@ Minimum hardware: **8 × NVIDIA A100 80GB GPUs**, or GPUs with equivalent or gre
 
 Training sources are specified in `data.sources` in [configs/paper.json](configs/paper.json). The loader downloads their training splits through Hugging Face Datasets. Ensure that the datasets and the configured model weights are accessible before training.
 
-| Domain | Dataset | Configured prompt budget |
+Training corpus mixture and sample counts shared by the compared methods.
+
+| Task family | Public corpus source | Samples |
 | --- | --- | ---: |
-| Mathematics | [OpenR1-Math-220k](https://huggingface.co/datasets/open-r1/OpenR1-Math-220k) | 38,000 |
-| Code | [TACO](https://huggingface.co/datasets/BAAI/TACO) | 24,000 |
-| Science | [SciQ](https://huggingface.co/datasets/allenai/sciq) | 18,000 |
-| Logic | [LogicLM](https://huggingface.co/datasets/longface/logicLM) | 12,000 |
+| Math | [open-r1/OpenR1-Math-220k](https://huggingface.co/datasets/open-r1/OpenR1-Math-220k) | 38,000 |
+| Code | [BAAI/TACO](https://huggingface.co/datasets/BAAI/TACO) | 24,000 |
+| Science | [allenai/sciq](https://huggingface.co/datasets/allenai/sciq) | 18,000 |
+| Logic | [longface/logicLM](https://huggingface.co/datasets/longface/logicLM) | 12,000 |
 
 Set the dataset identifiers in `data.sources` and the per-domain budgets in `data.mixture`. The default backbone is [Qwen3.5-27B](https://huggingface.co/Qwen/Qwen3.5-27B), configured through `model.backbone`.
 
