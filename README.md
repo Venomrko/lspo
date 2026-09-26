@@ -1,93 +1,104 @@
-# LSPO — Lightning Implementation
+# Self-Correction as Transition Geometry: Internalizing Reasoning via Lifted State Policy Optimization
 
-This directory implements LSPO with PyTorch Lightning. Lightning owns the training loop, process launch, optimizer stepping, logging, and checkpoints. The energy-ranking loss, controller objective, lifted transitions, and answer internalization reuse the existing implementation.
+**NeurIPS 2026** · Ren Zhuang, Ben Wang, Shuifa Sun
 
-## Contributions
+Code for **Lifted State Policy Optimization (LSPO)**.
 
-1. Internalize selected low-energy answers into a generator used for direct generation.
-2. Assign transition credit through energy decrease minus edit and step costs.
-3. Carry refinement context through a learned continuous coordinate.
+## Overview
 
-## Hardware Requirement
+LSPO trains language models to internalize answer correction. Each answer is paired with a continuous auxiliary coordinate that carries refinement context. A controller learns local revisions from energy decreases, balanced against edit and step costs. Selected answers then become training targets for the generator. At deployment, the model produces answers through direct generation.
 
-The minimum release configuration is 8 NVIDIA A100 80GB GPUs, or equivalent or greater GPU memory and throughput. The paper results were obtained with 8 NVIDIA A100 80GB GPUs.
+![Comparison of answer-level optimization, trajectory RL, and LSPO](assets/method.png)
 
-## Installation
+**Method overview.** LSPO assigns credit to transitions in the lifted state space and internalizes the selected answers.
 
-Use Python 3.12 in a separate environment. Install a CUDA-enabled PyTorch build (2.10.0 or later) appropriate for the host, then install the dependencies:
+The paper evaluates Qwen3.5-9B and Qwen3.5-27B dense models, together with the Qwen3.5-35B-A3B mixture-of-experts model. The following results are reported in the paper across MATH-500, AIME25, GPQA, LiveCodeBench, ZebraLogic, and MMLU-Pro. Scores are percentages; each cell gives **pass@1 / pass@16**.
+
+| Method | Qwen3.5-9B | Qwen3.5-27B | Qwen3.5-35B-A3B |
+| --- | ---: | ---: | ---: |
+| Base | 54.8 / 67.2 | 65.9 / 76.2 | 67.8 / 77.7 |
+| DPO | 55.8 / 68.1 | 66.9 / 77.1 | 68.8 / 78.7 |
+| Step-DPO | 56.9 / 69.5 | 68.0 / 78.5 | 70.0 / 80.0 |
+| GRPO | 58.9 / 71.9 | 70.0 / 80.9 | 71.6 / 82.0 |
+| GDPO | 59.6 / 72.7 | 70.8 / 81.7 | 72.3 / 82.9 |
+| SCoRe | 59.4 / 72.8 | 70.7 / 82.0 | 71.9 / 82.9 |
+| **LSPO** | **60.8 / 73.9** | **71.8 / 82.7** | **72.6 / 83.1** |
+
+![Quality, sampling, correction transitions, and output cost on Qwen3.5-27B](assets/results.png)
+
+**Quality and cost on Qwen3.5-27B.** LSPO achieves an aggregate pass@1 score of 71.8%, with an average latency of 10.93 seconds and 1,265 output tokens in the paper's evaluation.
+
+Component ablations on Qwen3.5-27B:
+
+| Variant | Aggregate pass@1 (%) | Average latency (s) | Average output tokens |
+| --- | ---: | ---: | ---: |
+| **LSPO** | **71.8** | **10.93** | **1,265** |
+| Without lifting | 70.9 | 11.70 | 1,316 |
+| Without progress reward | 70.0 | 12.35 | 1,366 |
+| Without internalization | 70.3 | 12.02 | 1,341 |
+
+## Initialization
+
+Use Python 3.12 and a CUDA-enabled PyTorch installation. Minimum package versions are listed in [requirements.txt](requirements.txt).
 
 ```bash
+git clone https://github.com/Venomrko/lspo.git
+cd lspo
 pip install -r requirements.txt
 ```
 
-The minimum versions are PyTorch 2.10.0, Lightning and PyTorch Lightning 2.6.6, and Transformers 5.2.0. Transformers 5.2.0 includes the Qwen3.5 text-generation mapping used by `AutoModelForCausalLM` for the default `Qwen/Qwen3.5-27B` backbone. See the [upstream model mapping](https://github.com/huggingface/transformers/blob/v5.2.0/src/transformers/models/auto/modeling_auto.py). Other dependencies are resolved under these packages' declared constraints. Model weights and datasets must be accessible separately.
+Minimum hardware: **8 × NVIDIA A100 80GB GPUs**, or GPUs with equivalent or greater memory and compute capacity. The paper experiments used 8 × NVIDIA A100 80GB GPUs.
+
+## Data Preparation
+
+Training sources are specified in `data.sources` in [configs/paper.json](configs/paper.json). The loader downloads their training splits through Hugging Face Datasets. Ensure that the datasets and the configured model weights are accessible before training.
+
+| Domain | Dataset | Configured prompt budget |
+| --- | --- | ---: |
+| Mathematics | [OpenR1-Math-220k](https://huggingface.co/datasets/open-r1/OpenR1-Math-220k) | 38,000 |
+| Code | [TACO](https://huggingface.co/datasets/BAAI/TACO) | 24,000 |
+| Science | [SciQ](https://huggingface.co/datasets/allenai/sciq) | 18,000 |
+| Logic | [LogicLM](https://huggingface.co/datasets/longface/logicLM) | 12,000 |
+
+Set the dataset identifiers in `data.sources` and the per-domain budgets in `data.mixture`. The default backbone is [Qwen3.5-27B](https://huggingface.co/Qwen/Qwen3.5-27B), configured through `model.backbone`.
 
 ## Training
+
+Train with the default configuration:
 
 ```bash
 python scripts/train.py --config configs/paper.json --devices 8
 ```
 
-A single Lightning run first fits the scoring branch, freezes it, and then runs controller RL with answer internalization. Every parameter uses Muon. Scalars and vectors use a single-row matrix view; higher-dimensional tensors flatten their trailing dimensions. The optimizer has no AdamW fallback.
+For a separate seed and output directory:
 
 ```bash
-python scripts/train.py --config configs/paper.json --resume runs/paper_27b/checkpoints/last.ckpt
-python scripts/train.py --config configs/paper.json --stage energy
-python scripts/train.py --config configs/paper.json --stage policy --initialize-from runs/paper_27b/final.ckpt
+python scripts/train.py --config configs/paper.json --devices 8 --seed 1234 --output-dir runs/seed1234
 ```
 
-`--resume` restores the same training stage and configuration, including optimizer state and update counters. `--initialize-from` transfers model weights and calibration from a completed energy checkpoint into a new policy-only run. Keep separate output directories for independent runs. Use `--set seed=1234 --set output_dir=runs/seed1234` for another seed.
+Resume a run:
 
-## Evaluation
+```bash
+python scripts/train.py --config configs/paper.json --devices 8 --resume runs/paper_27b/checkpoints/last.ckpt
+```
+
+Evaluate the trained checkpoint:
 
 ```bash
 python scripts/evaluate.py --config configs/paper.json --checkpoint runs/paper_27b/final.ckpt --devices 8 --output evaluation.json
 ```
 
-Evaluation loads all six primary suites and five held-out suites. Data-loading failures stop evaluation. Code verification remains static by default and is identified in the output. Each input receives 16 samples for pass@16. The first sample determines pass@1 and generation cost. Latency is measured per request after warmup with device synchronization. The 4096-token evaluation cap is an implementation default, not a recovered experiment setting; truncation rates are reported.
-
-## Distributed Execution
-
-The GPU strategy uses FSDP2 for the two backbone copies and synchronized replicated heads. Tensor parallelism is disabled. Online trajectories can have different action counts and generation lengths, so this version deliberately uses identical prompt batches and sampling seeds on all ranks. This keeps FSDP forward collectives in the same order. `prompts_per_update` counts unique prompts, not duplicated rank-local copies. This correctness-first mode does not provide independent per-rank rollout throughput and should not be used to reproduce the paper's wall-clock figure without further measurement.
-
-## Checkpoints
-
-Checkpoints contain model and reference weights, both Muon states, stage counters, the training-derived energy calibration, and Lightning loop state. Learning-rate positions are reconstructed from the saved counters. Energy states are regenerated deterministically from the fixed initial generator when resuming energy fitting. No evaluation labels are used for calibration.
-
-## Repository Layout
-
-```text
-lspo_repro_lightning/
-|-- configs/
-|   |-- paper.json
-|-- scripts/
-|   |-- train.py
-|   |-- evaluate.py
-|-- lspo/
-|   |-- lightning/
-|   |   |-- module.py       Two-stage LightningModule and manual optimization
-|   |   |-- data.py         Prompt batches and deterministic update ordering
-|   |   |-- runner.py       Trainer, strategy, logging, and checkpoints
-|   |-- models/            Generator, scoring branch, controller, and value head
-|   |-- env/               Rollouts, proposals, candidates, and static verifiers
-|   |-- train/             Muon, losses, GAE, and state-sampling helpers
-|   |-- data/              Training and benchmark adapters
-|   |-- eval/              Accuracy, ordering, and generation-cost metrics
-|   |-- baselines/         Reusable baseline components
-|   |-- utils/             Text and device helpers
-|-- requirements.txt
-|-- LICENSE
-|-- README.md
-```
-
-## Validation Boundary
-
-The CPU checks exercise the real Lightning Trainer on a small internal model. They do not reproduce paper accuracy or validate eight-GPU FSDP2 execution. No low-resource training configuration or smoke-test entry point is included in this release.
-
-Validated locally with Lightning 2.6.6 and PyTorch 2.10.0 (CPU): two-stage training, loss and gradient equality with the reused reference functions, checkpoint-based prediction including pass@16, and interrupted energy-stage recovery with zero final parameter difference. Eight-GPU execution remains unverified.
-
-Resume validates the seed, variant, training limit, and an ordered fingerprint of the training records. Checkpoints created before these checks were introduced cannot provide verified exact resume. Resource reports use the saved policy-update counter and cumulative active training time across resumed sessions. Ablation evaluation uses complete suites unless `--eval-limit` is explicitly supplied.
-
 ## License
 
-The LSPO code is released under the [MIT License](LICENSE), copyright 2026 LSPO authors. Model weights, datasets, and third-party dependencies retain their respective licenses.
+This code is released under the [MIT License](LICENSE). Model weights and datasets retain their respective licenses.
+
+## Citation
+
+```bibtex
+@inproceedings{zhuang2026lspo,
+  title = {Self-Correction as Transition Geometry: Internalizing Reasoning via Lifted State Policy Optimization},
+  author = {Zhuang, Ren and Wang, Ben and Sun, Shuifa},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year = {2026}
+}
+```
