@@ -8,17 +8,21 @@ Code for **Lifted State Policy Optimization (LSPO)**.
 
 LSPO trains language models to internalize answer correction. Each answer is paired with a continuous auxiliary coordinate that carries refinement context. A controller learns local revisions from energy decreases, balanced against edit and step costs. Selected answers then become training targets for the generator. At deployment, the model produces answers through direct generation.
 
+![Qwen3.5-27B benchmark results, rollout-to-direct alignment, and energy separation](assets/figure1.png)
+
+Benchmark performance on Qwen3.5-27B, alignment between rollout-selected answers and direct generation, and final-energy distributions for correct and incorrect answers.
+
 ### Method
 
 ![Comparison of answer-level optimization, trajectory RL, and LSPO](assets/method.png)
 
 **Comparison with answer-level optimization and trajectory RL.** LSPO assigns credit to transitions in the lifted state space and internalizes the selected answers.
 
-![LSPO reward and optimization objective](assets/formulas_combined.png)
+<img src="assets/formulas_combined.png" alt="LSPO reward and optimization objective" style="zoom:33%;" />
 
 **Training objective.** Energy decrease supplies transition credit, with edit and step penalties. KL regularization constrains policy updates, while answer internalization trains the generator on selected answers.
 
-![LSPO framework: lifted states and answer internalization](assets/fig1_drawio.png)
+<img src="assets/fig1_drawio.png" alt="LSPO framework: lifted states and answer internalization" style="zoom:33%;" />
 
 **LSPO framework.** Correction proceeds through lifted states, and selected answers provide targets for direct generation.
 
@@ -28,15 +32,15 @@ The paper evaluates Qwen3.5-9B and Qwen3.5-27B dense models, together with the Q
 
 **Qwen3.5-9B**
 
-![Qwen3.5-9B benchmark results](assets/figure6_pass16_benchmarks_qwen35_9b.png)
+<img src="assets/figure6_pass16_benchmarks_qwen35_9b.png" alt="Qwen3.5-9B benchmark results" style="zoom: 33%;" />
 
 **Qwen3.5-27B**
 
-![Qwen3.5-27B benchmark results](assets/figure6_pass16_benchmarks_qwen35_27b.png)
+<img src="assets/figure6_pass16_benchmarks_qwen35_27b.png" alt="Qwen3.5-27B benchmark results" style="zoom:33%;" />
 
 **Qwen3.5-35B-A3B**
 
-![Qwen3.5-35B-A3B benchmark results](assets/figure6_pass16_benchmarks_qwen35_35b_a3b.png)
+<img src="assets/figure6_pass16_benchmarks_qwen35_35b_a3b.png" alt="Qwen3.5-35B-A3B benchmark results" style="zoom:33%;" />
 
 ### Quality and Internalization
 
@@ -44,22 +48,13 @@ The paper evaluates Qwen3.5-9B and Qwen3.5-27B dense models, together with the Q
 
 **Quality and cost on Qwen3.5-27B.** LSPO achieves an aggregate pass@1 score of 71.8%, with an average latency of 10.93 seconds and 1,265 output tokens in the paper's evaluation.
 
-<details>
-<summary>Figure 1: benchmark profile, rollout-to-direct alignment, and energy separation</summary>
-
-![Qwen3.5-27B benchmark results, rollout-to-direct alignment, and energy separation](assets/figure1.png)
-
-Benchmark performance on Qwen3.5-27B, alignment between rollout-selected answers and direct generation, and final-energy distributions for correct and incorrect answers.
-
-</details>
-
 ### Training Dynamics
 
 ![Transition stability, net gain, and direct performance during training](assets/figure5_training_dynamics.png)
 
 **Training dynamics.** Transition stability, net correction gain, and direct pass@1 over 15,000 training steps.
 
-![Energy during policy training](assets/geometric_descent.png)
+<img src="assets/geometric_descent.png" alt="Energy during policy training" style="zoom: 25%;" />
 
 **Energy during policy training.** Highlighted points mark improvements in the lowest energy observed so far; the line tracks that running minimum across policy updates.
 
