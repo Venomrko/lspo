@@ -71,7 +71,7 @@ Quality, sampling, revision, and token cost on Qwen3.5-27B. LSPO reaches 71.8% a
 Training dynamics across transition stability, net gain, and direct accuracy. Transition stability and net gain plateau before direct accuracy, consistent with the geometric landscape forming before the generator absorbs it.
 
 <p align="center">
-  <img src="assets/geometric_descent.png" alt="Energy during policy training" width="80%" />
+  <img src="assets/geometric_descent.png" alt="Energy during policy training" width="100%" />
 </p>
 
 Policy-training energy and task-level net gains. The left panel shows recorded energy across policy updates, where the curve tracks the cumulative minimum and points mark new minima. The right panel independently reports net correction gains across benchmarks.
