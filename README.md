@@ -40,14 +40,6 @@ The paper evaluates Qwen3.5-9B and Qwen3.5-27B dense models, together with the Q
 
 Benchmark profile for Qwen3.5-9B. LSPO improves direct accuracy while preserving substantial sampled pass@16 headroom in the smaller dense backbone.
 
-**Qwen3.5-27B**
-
-<p align="center">
-  <img src="assets/figure6_pass16_benchmarks_qwen35_27b.png" alt="Qwen3.5-27B benchmark results" width="80%" />
-</p>
-
-Benchmark profile for Qwen3.5-27B. LSPO achieves consistent direct gains while preserving the sampled pass@16 envelope.
-
 **Qwen3.5-35B-A3B**
 
 <p align="center">
