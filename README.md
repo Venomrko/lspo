@@ -18,7 +18,9 @@ Improvements found during training persist in direct generation. On Qwen3.5-27B,
 
 Comparison of training paradigms. Preference learning in the top left panel optimizes static final answers, while trajectory RL in the top right panel maximizes returns across full rollouts. LSPO in the bottom panel assigns credit to local transitions and internalizes selected endpoints.
 
-<img src="assets/formulas_combined.png" alt="LSPO reward and optimization objective" width="80%" />
+<p align="center">
+  <img src="assets/formulas_combined.png" alt="LSPO reward and optimization objective" width="80%" />
+</p>
 
 Annotated reward and objective for LSPO. The assignment of credit per step, the regularization of the policy, and direct training on the answer occupy distinct terms within the update.
 
