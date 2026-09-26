@@ -8,6 +8,10 @@ Code for **Lifted State Policy Optimization (LSPO)**.
 
 LSPO trains language models to internalize answer correction. Each answer is paired with a continuous auxiliary coordinate that carries refinement context. A controller learns local revisions from energy decreases, balanced against edit and step costs. Selected answers then become training targets for the generator. At deployment, the model produces answers through direct generation.
 
+![Qwen3.5-27B benchmark results, rollout-to-direct alignment, and energy separation](assets/figure1.png)
+
+**Figure 1.** Benchmark performance on Qwen3.5-27B, alignment between rollout-selected answers and direct generation, and final-energy distributions for correct and incorrect answers.
+
 ![Comparison of answer-level optimization, trajectory RL, and LSPO](assets/method.png)
 
 **Method overview.** LSPO assigns credit to transitions in the lifted state space and internalizes the selected answers.
