@@ -22,7 +22,9 @@ Benchmark performance on Qwen3.5-27B, alignment between rollout-selected answers
 
 **Training objective.** Energy decrease supplies transition credit, with edit and step penalties. KL regularization constrains policy updates, while answer internalization trains the generator on selected answers.
 
-<img src="assets/fig1_drawio.png" alt="LSPO framework: lifted states and answer internalization" style="zoom:33%;" />
+<p align="center">
+  <img src="assets/fig1_drawio.png" alt="LSPO framework: lifted states and answer internalization" width="80%" />
+</p>
 
 **LSPO framework.** Correction proceeds through lifted states, and selected answers provide targets for direct generation.
 
@@ -32,15 +34,21 @@ The paper evaluates Qwen3.5-9B and Qwen3.5-27B dense models, together with the Q
 
 **Qwen3.5-9B**
 
-<img src="assets/figure6_pass16_benchmarks_qwen35_9b.png" alt="Qwen3.5-9B benchmark results" style="zoom: 33%;" />
+<p align="center">
+  <img src="assets/figure6_pass16_benchmarks_qwen35_9b.png" alt="Qwen3.5-9B benchmark results" width="80%" />
+</p>
 
 **Qwen3.5-27B**
 
-<img src="assets/figure6_pass16_benchmarks_qwen35_27b.png" alt="Qwen3.5-27B benchmark results" style="zoom:33%;" />
+<p align="center">
+  <img src="assets/figure6_pass16_benchmarks_qwen35_27b.png" alt="Qwen3.5-27B benchmark results" width="80%" />
+</p>
 
 **Qwen3.5-35B-A3B**
 
-<img src="assets/figure6_pass16_benchmarks_qwen35_35b_a3b.png" alt="Qwen3.5-35B-A3B benchmark results" style="zoom:33%;" />
+<p align="center">
+  <img src="assets/figure6_pass16_benchmarks_qwen35_35b_a3b.png" alt="Qwen3.5-35B-A3B benchmark results" width="80%" />
+</p>
 
 ### Quality and Internalization
 
@@ -50,11 +58,15 @@ The paper evaluates Qwen3.5-9B and Qwen3.5-27B dense models, together with the Q
 
 ### Training Dynamics
 
-![Transition stability, net gain, and direct performance during training](assets/figure5_training_dynamics.png)
+<p align="center">
+  <img src="assets/figure5_training_dynamics.png" alt="Transition stability, net gain, and direct performance during training" width="80%" />
+</p>
 
 **Training dynamics.** Transition stability, net correction gain, and direct pass@1 over 15,000 training steps.
 
-<img src="assets/geometric_descent.png" alt="Energy during policy training" style="zoom: 25%;" />
+<p align="center">
+  <img src="assets/geometric_descent.png" alt="Energy during policy training" width="80%" />
+</p>
 
 **Energy during policy training.** Highlighted points mark improvements in the lowest energy observed so far; the line tracks that running minimum across policy updates.
 
