@@ -65,7 +65,7 @@ Quality, sampling, revision, and token cost on Qwen3.5-27B. LSPO reaches 71.8% a
 ### Training Dynamics
 
 <p align="center">
-  <img src="assets/figure5_training_dynamics.png" alt="Transition stability, net gain, and direct performance during training" width="50%" />
+  <img src="assets/figure5_training_dynamics.png" alt="Transition stability, net gain, and direct performance during training" width="100%" />
 </p>
 
 Training dynamics across transition stability, net gain, and direct accuracy. Transition stability and net gain plateau before direct accuracy, consistent with the geometric landscape forming before the generator absorbs it.
