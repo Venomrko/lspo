@@ -10,22 +10,17 @@ LSPO trains language models to internalize answer correction. Each answer is pai
 
 ### Method
 
-![LSPO framework: lifted states and answer internalization](assets/fig1_drawio.png)
+![Comparison of answer-level optimization, trajectory RL, and LSPO](assets/method.png)
 
-**LSPO framework.** Correction proceeds through lifted states, and selected answers provide targets for direct generation.
+**Comparison with answer-level optimization and trajectory RL.** LSPO assigns credit to transitions in the lifted state space and internalizes the selected answers.
 
 ![LSPO reward and optimization objective](assets/formulas_combined.png)
 
 **Training objective.** Energy decrease supplies transition credit, with edit and step penalties. KL regularization constrains policy updates, while answer internalization trains the generator on selected answers.
 
-<details>
-<summary>Comparison with answer-level optimization and trajectory RL</summary>
+![LSPO framework: lifted states and answer internalization](assets/fig1_drawio.png)
 
-![Comparison of answer-level optimization, trajectory RL, and LSPO](assets/method.png)
-
-LSPO assigns credit to transitions in the lifted state space and internalizes the selected answers.
-
-</details>
+**LSPO framework.** Correction proceeds through lifted states, and selected answers provide targets for direct generation.
 
 ### Benchmark Results
 
@@ -63,6 +58,10 @@ Benchmark performance on Qwen3.5-27B, alignment between rollout-selected answers
 ![Transition stability, net gain, and direct performance during training](assets/figure5_training_dynamics.png)
 
 **Training dynamics.** Transition stability, net correction gain, and direct pass@1 over 15,000 training steps.
+
+![Energy during policy training](assets/geometric_descent.png)
+
+**Energy during policy training.** Highlighted points mark improvements in the lowest energy observed so far; the line tracks that running minimum across policy updates.
 
 Component ablations on Qwen3.5-27B:
 
