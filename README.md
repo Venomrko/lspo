@@ -18,7 +18,7 @@ Benchmark performance on Qwen3.5-27B, alignment between rollout-selected answers
 
 **Comparison with answer-level optimization and trajectory RL.** LSPO assigns credit to transitions in the lifted state space and internalizes the selected answers.
 
-<img src="assets/formulas_combined.png" alt="LSPO reward and optimization objective" style="zoom:33%;" />
+<img src="assets/formulas_combined.png" alt="LSPO reward and optimization objective" width="80%" />
 
 **Training objective.** Energy decrease supplies transition credit, with edit and step penalties. KL regularization constrains policy updates, while answer internalization trains the generator on selected answers.
 
@@ -59,7 +59,7 @@ The paper evaluates Qwen3.5-9B and Qwen3.5-27B dense models, together with the Q
 ### Training Dynamics
 
 <p align="center">
-  <img src="assets/figure5_training_dynamics.png" alt="Transition stability, net gain, and direct performance during training" width="80%" />
+  <img src="assets/figure5_training_dynamics.png" alt="Transition stability, net gain, and direct performance during training" width="50%" />
 </p>
 
 **Training dynamics.** Transition stability, net correction gain, and direct pass@1 over 15,000 training steps.
