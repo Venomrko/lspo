@@ -144,7 +144,7 @@ This code is released under the [MIT License](LICENSE). Model weights and datase
 @inproceedings{zhuang2026lspo,
   title = {Lifted State Policy Optimization: Internalizing Self-Correction through Transition Geometry},
   author = {Zhuang, Ren and Wang, Ben and Sun, Shuifa},
-  booktitle = {Advances in Neural Information Processing Systems},
+  booktitle = {The Fortieth Annual Conference on Neural Information Processing Systems},
   year = {2026}
 }
 ```
